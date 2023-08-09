@@ -47,6 +47,23 @@ class MyAppState extends ChangeNotifier {
     numberList.add({current.toString(), DateTime.timestamp().toString()});
     notifyListeners();
   }
+
+  List _items = [];
+  Future<void> readJson() async {
+    final String response =
+        await rootBundle.loadString('assets/ProductList.json');
+    final data = await json.decode(response);
+    _items = data["list"];
+    notifyListeners();
+  }
+
+  var searchFil = "";
+  bool isFavorite = false;
+  var minPrice = "";
+  var maxPrice = "";
+  var minStock = 0;
+  var maxStock = 99999999;
+  var ratingFil = 0;
 }
 
 class MyHomePage extends StatefulWidget {
@@ -81,7 +98,9 @@ class _MyHomePageState extends State<MyHomePage> {
     return LayoutBuilder(builder: (context, constraints) {
       return Scaffold(
         appBar: AppBar(
-          title: Text(page.toString()),
+          title: Text(page.toString(),
+              style: Theme.of(context).textTheme.titleLarge),
+          backgroundColor: Theme.of(context).colorScheme.primary,
         ),
         body: Row(
           children: [
@@ -189,43 +208,17 @@ class Products extends StatefulWidget {
 }
 
 class _ProductsState extends State<Products> {
-  List _items = [];
-  String searchKey = "";
-
-  Future<void> readJson() async {
-    final String response =
-        await rootBundle.loadString('assets/ProductList.json');
-    final data = await json.decode(response);
-    setState(() {
-      _items = data["list"];
-    });
-  }
-
   final myController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    // Call the readJson method when the app starts
-    readJson();
-
-    myController.addListener(() {
-      searchKey = myController.text;
-      readJson();
-    });
-  }
-
-  @override
   void dispose() {
-    // Clean up the controller when the widget is disposed.
     myController.dispose();
     super.dispose();
   }
 
-  bool isFavorites = false;
-
   @override
   Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
     return Column(
       children: [
         Padding(
@@ -235,47 +228,146 @@ class _ProductsState extends State<Products> {
             children: [
               Expanded(
                 child: TextField(
-                    controller: myController,
-                    decoration: const InputDecoration(
-                        border: UnderlineInputBorder(),
-                        labelText: 'Search',
-                        prefixIcon: Icon(Icons.search))),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: ElevatedButton(
-                  onPressed: () {
-                    showDialog(
-                        context: context,
-                        builder: (context) {
-                          return FilterForm();
-                        });
+                  controller: myController,
+                  decoration: const InputDecoration(
+                      border: UnderlineInputBorder(),
+                      labelText: 'Search',
+                      prefixIcon: Icon(Icons.search)),
+                  onChanged: (value) {
+                    appState.searchFil = value;
+                    appState.readJson();
                   },
-                  child: Icon(Icons.filter_alt),
                 ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return FilterForm();
+                      });
+                },
+                child: Icon(Icons.filter_alt),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  appState.readJson();
+                },
+                child: Icon(Icons.refresh),
               )
             ],
           ),
         ),
-        _items.isNotEmpty
+        appState._items.isNotEmpty
             ? Expanded(
                 child: ListView.builder(
-                    itemCount: _items.length,
+                    itemCount: appState._items.length,
                     itemBuilder: (context, index) {
-                      return _items[index]["Name"]
-                              .toString()
-                              .toLowerCase()
-                              .contains(searchKey)
-                          ? Card(
-                              key: ValueKey(_items[index]["Id"]),
-                              margin: EdgeInsets.all(12),
-                              child: ListTile(
-                                leading: Text(_items[index]["Id"].toString()),
-                                title: Text(_items[index]["Name"].toString()),
-                                subtitle:
-                                    Text(_items[index]["Likes"].toString()),
+                      return (appState._items[index]["Name"]
+                                  .toString()
+                                  .toLowerCase()
+                                  .contains(appState.searchFil)) &&
+                              (!appState.isFavorite ||
+                                  (appState.isFavorite &&
+                                      appState._items[index]["Likes"] >= 40)) &&
+                              ((appState.minPrice == "" ||
+                                      appState.maxPrice == "") ||
+                                  (int.tryParse(appState.minPrice) != null &&
+                                      int.tryParse(appState.maxPrice) != null &&
+                                      appState._items[index]["Price"] >=
+                                          int.parse(appState.minPrice) &&
+                                      appState._items[index]["Price"] <=
+                                          int.parse(appState.maxPrice)))
+                          ? Stack(children: [
+                              Card(
+                                clipBehavior: Clip.antiAlias,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer,
+                                key: ValueKey(appState._items[index]["Id"]),
+                                margin: EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Image.memory(base64Decode(
+                                        appState._items[index]["Image"])),
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                          top: 16, left: 16, right: 16),
+                                      child: Text(
+                                        appState._items[index]["Name"]
+                                            .toString(),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium,
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 16, right: 16, bottom: 16),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            "\$",
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .displaySmall,
+                                          ),
+                                          Expanded(
+                                            child: Text(
+                                              appState._items[index]["Price"]
+                                                  .toString(),
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .displaySmall,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 16, right: 16, bottom: 16),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          for (var i = 0;
+                                              i <
+                                                  appState._items[index]
+                                                          ["Rating"]
+                                                      .ceil();
+                                              i++)
+                                            Icon(
+                                              Icons.star,
+                                              size: 16,
+                                            ),
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(left: 8),
+                                            child: Text(appState._items[index]
+                                                    ["Stock"]
+                                                .toString()),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            )
+                              appState._items[index]["Likes"] >= 40
+                                  ? Positioned(
+                                      right: 16,
+                                      top: 16,
+                                      child: Icon(
+                                        Icons.favorite,
+                                        size: 32,
+                                        color:
+                                            Theme.of(context).colorScheme.error,
+                                      ),
+                                    )
+                                  : const SizedBox()
+                            ])
                           : const SizedBox();
                     }),
               )
@@ -285,13 +377,19 @@ class _ProductsState extends State<Products> {
   }
 }
 
-class FilterForm extends StatelessWidget {
+class FilterForm extends StatefulWidget {
   const FilterForm({
     super.key,
   });
 
   @override
+  State<FilterForm> createState() => _FilterFormState();
+}
+
+class _FilterFormState extends State<FilterForm> {
+  @override
   Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
     return Dialog(
       child: Column(
         children: [
@@ -309,6 +407,10 @@ class FilterForm extends StatelessWidget {
                           border: OutlineInputBorder(),
                           labelText: 'MIN',
                         ),
+                        onChanged: (value) {
+                          appState.minPrice = value;
+                          appState.readJson();
+                        },
                       ),
                     ),
                     Text(" - "),
@@ -318,6 +420,10 @@ class FilterForm extends StatelessWidget {
                           border: OutlineInputBorder(),
                           labelText: 'MAX',
                         ),
+                        onChanged: (value) {
+                          appState.maxPrice = value;
+                          appState.readJson();
+                        },
                       ),
                     ),
                   ],
@@ -325,6 +431,23 @@ class FilterForm extends StatelessWidget {
               ],
             ),
           ),
+          Container(
+            padding: EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Checkbox(
+                  value: appState.isFavorite,
+                  onChanged: (value) {
+                    setState(() {
+                      appState.isFavorite = value!;
+                      appState.readJson();
+                    });
+                  },
+                ),
+                Expanded(child: Text("Favorite"))
+              ],
+            ),
+          )
         ],
       ),
     );
@@ -332,4 +455,3 @@ class FilterForm extends StatelessWidget {
 }
 
 // Id - Name - Description - Rating - Category - Brand - Model - Price - Stock - Weight - Dimension - Likes
-
