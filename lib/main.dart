@@ -217,6 +217,12 @@ class _ProductsState extends State<Products> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    context.read<MyAppState>().readJson();
+  }
+
+  @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
     return Column(
@@ -302,84 +308,96 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
     var productId = appState._items[index]["Id"];
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (_) => ProductDetail(productId: productId)));
-      },
-      child: Stack(children: [
-        Card(
-          clipBehavior: Clip.antiAlias,
-          color: Theme.of(context).colorScheme.primaryContainer,
-          key: ValueKey(appState._items[index]["Id"]),
-          margin: EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Hero(
-                  tag: "img-$productId",
+    return Container(
+      margin: EdgeInsets.all(8.0),
+      decoration: BoxDecoration(boxShadow: [
+        BoxShadow(
+            color: Color.fromARGB(21, 0, 0, 0),
+            blurRadius: 0.02,
+            spreadRadius: 0.2,
+            offset: Offset(0, 4))
+      ], borderRadius: BorderRadius.circular(12)),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => ProductDetail(productId: productId)));
+        },
+        child: Stack(children: [
+          Card(
+            clipBehavior: Clip.antiAlias,
+            color: Theme.of(context).colorScheme.primaryContainer,
+            key: ValueKey(appState._items[index]["Id"]),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
                   child: Image.memory(
-                      base64Decode(appState._items[index]["Image"]))),
-              Padding(
-                padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
-                child: Text(
-                  appState._items[index]["Name"].toString(),
-                  style: Theme.of(context).textTheme.titleMedium,
+                      base64Decode(appState._items[index]["Image"])),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-                child: Row(
-                  children: [
-                    Text(
-                      "\$",
-                      style: Theme.of(context).textTheme.displaySmall,
-                    ),
-                    Expanded(
-                      child: Text(
-                        appState._items[index]["Price"].toString(),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+                  child: Text(
+                    "${appState._items[index]["Brand"]} - ${appState._items[index]["Name"]}",
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                  child: Row(
+                    children: [
+                      Text(
+                        "\$",
                         style: Theme.of(context).textTheme.displaySmall,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    for (var i = 0;
-                        i < appState._items[index]["Rating"].ceil();
-                        i++)
-                      Icon(
-                        Icons.star,
-                        size: 16,
+                      Expanded(
+                        child: Text(
+                          appState._items[index]["Price"].toString(),
+                          style: Theme.of(context).textTheme.displaySmall,
+                        ),
                       ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Text(appState._items[index]["Stock"].toString()),
-                    )
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                Padding(
+                  padding:
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      for (var i = 0;
+                          i < appState._items[index]["Rating"].ceil();
+                          i++)
+                        Icon(
+                          Icons.star,
+                          size: 16,
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Text(appState._items[index]["Stock"].toString()),
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        appState._items[index]["Likes"] >= 40
-            ? Positioned(
-                right: 16,
-                top: 16,
-                child: Icon(
-                  Icons.favorite,
-                  size: 32,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-              )
-            : const SizedBox()
-      ]),
+          appState._items[index]["Likes"] >= 40
+              ? Positioned(
+                  right: 16,
+                  top: 16,
+                  child: Icon(
+                    Icons.favorite,
+                    size: 32,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                )
+              : const SizedBox()
+        ]),
+      ),
     );
   }
 }
@@ -475,54 +493,192 @@ class ProductDetail extends StatelessWidget {
       appBar: AppBar(
           title: Text("Product Detail"),
           backgroundColor: Theme.of(context).colorScheme.primaryContainer),
-      body: Center(
-        child: Column(
-          children: [
-            Hero(
-                tag: "img$productId",
-                child: Image.memory(base64Decode(selectedProduct["Image"]))),
-            Padding(
-              padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
-              child: Text(
-                selectedProduct["Name"].toString(),
-                style: Theme.of(context).textTheme.titleMedium,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.memory(base64Decode(selectedProduct["Image"]))),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(
+                  selectedProduct["Name"].toString(),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-              child: Row(
-                children: [
-                  Text(
-                    "\$",
-                    style: Theme.of(context).textTheme.displaySmall,
-                  ),
-                  Expanded(
-                    child: Text(
-                      selectedProduct["Price"].toString(),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  selectedProduct["Description"].toString(),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    for (var i = 0; i < selectedProduct["Rating"].ceil(); i++)
+                      Icon(
+                        Icons.star,
+                        size: 16,
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Text(selectedProduct["Stock"].toString()),
+                    )
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  children: [
+                    Text(
+                      "\$",
                       style: Theme.of(context).textTheme.displaySmall,
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  for (var i = 0; i < selectedProduct["Rating"].ceil(); i++)
-                    Icon(
-                      Icons.star,
-                      size: 16,
+                    Expanded(
+                      child: Text(
+                        selectedProduct["Price"].toString(),
+                        style: Theme.of(context).textTheme.displaySmall,
+                      ),
                     ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Text(selectedProduct["Stock"].toString()),
-                  )
-                ],
+                    selectedProduct["Likes"] >= 40
+                        ? Icon(
+                            Icons.favorite,
+                            color: Theme.of(context).colorScheme.error,
+                            size: 32,
+                          )
+                        : const SizedBox()
+                  ],
+                ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  "Product Detail",
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  children: [
+                    Text(
+                      "Model :",
+                      style: Theme.of(context).textTheme.displaySmall,
+                    ),
+                    Expanded(
+                      child: Text(
+                        selectedProduct["Model"].toString(),
+                        style: Theme.of(context).textTheme.displaySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  children: [
+                    Text(
+                      "Weight : ",
+                      style: Theme.of(context).textTheme.displaySmall,
+                    ),
+                    Expanded(
+                      child: Text(
+                        selectedProduct["Weight"].toString(),
+                        style: Theme.of(context).textTheme.displaySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 32),
+                child: Row(
+                  children: [
+                    Text(
+                      "Dimension : ",
+                      style: Theme.of(context).textTheme.displaySmall,
+                    ),
+                    Expanded(
+                      child: Text(
+                        selectedProduct["Dimension"].toString(),
+                        style: Theme.of(context).textTheme.displaySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  "You Migth Like :",
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      for (final item in appState._items.where((element) =>
+                          element["Category"] == selectedProduct["Category"] &&
+                          element["Id"] != selectedProduct["Id"]))
+                        Card(
+                          child: SizedBox(
+                            width: 200,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child:
+                                      Image.memory(base64Decode(item["Image"])),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      top: 16, left: 16, right: 16),
+                                  child: Text(
+                                    "${item["Brand"]} - ${item["Name"]}",
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 16, right: 16, bottom: 16),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        "\$",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .displaySmall,
+                                      ),
+                                      Text(
+                                        item["Price"].toString(),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .displaySmall,
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                    ]),
+              ),
+            ],
+          ),
         ),
       ),
     );
