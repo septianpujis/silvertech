@@ -7,6 +7,89 @@ void main() {
   runApp(const MyApp());
 }
 
+class ColorConstant {
+  static Color primary900 = Color(0xFF00527F);
+  static Color primary800 = Color(0xFF006197);
+  static Color primary700 = Color(0xFF006BA6);
+  static Color primary600 = Color(0xFF0077B6);
+  static Color primary500 = Color(0xFF008CBA);
+  static Color primary400 = Color(0xFF00A7DD);
+  static Color primary300 = Color(0xFF75C3F3);
+  static Color primary200 = Color(0xFF8FCFF6);
+  static Color primary100 = Color(0xFFC6E5F7);
+  static Color primary050 = Color(0xFFE3F4FF);
+
+  static Color neutral900 = Color(0xFF383D47);
+  static Color neutral800 = Color(0xFF383D47);
+  static Color neutral700 = Color(0xFF585D67);
+  static Color neutral600 = Color(0xFF62666E);
+  static Color neutral500 = Color(0xFF96999E);
+  static Color neutral400 = Color(0xFFABADB1);
+  static Color neutral300 = Color(0xFFD0D0D0);
+  static Color neutral200 = Color(0xFFE6E3E3);
+  static Color neutral150 = Color(0xFFF1F1F1);
+  static Color neutral100 = Color(0xFFF5F5F5);
+  static Color neutral000 = Color(0xFFFFFFFF);
+
+  static LinearGradient gradient = LinearGradient(
+      colors: [ColorConstant.primary900, ColorConstant.primary600]);
+}
+
+enum TypographyType {
+  pageTitle,
+  pageSubTitle,
+  sectionTitle,
+  sectionSubTitle,
+  bodyBlack,
+  bodyGrey,
+  bodyLightGrey,
+  danger,
+  boxKey,
+  boxValue,
+  tableHeader,
+  cardTitle,
+  dashboardTitle,
+  dashboardSubtitle,
+  dashboardDate,
+}
+
+// class CustomTypography extends StatelessWidget {
+//   const CustomTypography({
+//     Key? key,
+//     required this.text,
+//     this.type,
+//     this.alignment,
+//     this.textColor,
+//     this.fontWeight = FontWeight.w400,
+//     this.fontSize = 16,
+//   }) : super(key: key);
+
+//   final String text;
+//   final TypographyType? type;
+//   final TextAlign? alignment;
+//   final Color? textColor;
+//   final FontWeight fontWeight;
+//   final double fontSize;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final double deviceWidth = MediaQuery.of(context).size.width;
+
+//     return Text(
+//       text,
+//       style: type == null
+//           ? TextStyle(
+//               color: textColor ?? Colors.black,
+//               fontWeight: fontWeight,
+//               fontSize: calcFontSize(fontSize, deviceWidth),
+//               overflow: TextOverflow.ellipsis,
+//             )
+//           : getStyleFromType(type, deviceWidth, textColor),
+//       textAlign: alignment ?? TextAlign.start,
+//     );
+//   }
+// }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -16,12 +99,16 @@ class MyApp extends StatelessWidget {
       create: (context) => MyAppState(),
       child: MaterialApp(
         title: 'Flutter Demo',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-          useMaterial3: true,
-        ),
+        theme: ontegoTheme(),
         home: MyHomePage(title: 'Flutter Demo Home Page'),
       ),
+    );
+  }
+
+  ThemeData ontegoTheme() {
+    return ThemeData(
+      colorScheme: ColorScheme.fromSeed(seedColor: ColorConstant.primary900),
+      useMaterial3: true,
     );
   }
 }
@@ -84,7 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Widget page;
     switch (selectedIndex) {
       case 0:
-        page = Products();
+        page = ThemeViewer();
         break;
       case 1:
         page = Favorites();
@@ -92,46 +179,40 @@ class _MyHomePageState extends State<MyHomePage> {
       case 2:
         page = NumberControl();
         break;
+      case 3:
+        page = Products();
+        break;
       default:
         throw UnimplementedError('404');
     }
     return LayoutBuilder(builder: (context, constraints) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(page.toString(),
-              style: Theme.of(context).textTheme.titleLarge),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ),
-        body: Row(
-          children: [
-            SafeArea(
-                child: NavigationRail(
-              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-              extended: constraints.maxWidth >= 600,
-              destinations: [
-                NavigationRailDestination(
-                    icon: Icon(Icons.calculate), label: Text("Home")),
-                NavigationRailDestination(
-                    icon: Icon(Icons.favorite), label: Text("favorite")),
-                NavigationRailDestination(
-                    icon: Icon(Icons.shop), label: Text("Products")),
-              ],
-              selectedIndex: selectedIndex,
-              onDestinationSelected: (value) {
-                setState(() {
-                  selectedIndex = value;
-                });
-              },
-            )),
-            Expanded(child: page)
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            appState.addNumber();
-          },
-          tooltip: 'Save',
-          child: const Icon(Icons.save),
+      return DefaultTabController(
+        length: 4,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(page.toString(),
+                style: Theme.of(context).textTheme.titleLarge),
+            backgroundColor: ColorConstant.primary900,
+            bottom: TabBar(tabs: [
+              Tab(icon: Icon(Icons.shopping_basket), text: "Product"),
+              Tab(icon: Icon(Icons.color_lens), text: "Basic"),
+              Tab(icon: Icon(Icons.numbers), text: "Number"),
+              Tab(icon: Icon(Icons.favorite_border_outlined), text: "Num Fav"),
+            ]),
+          ),
+          body: TabBarView(children: [
+            Products(),
+            ThemeViewer(),
+            NumberControl(),
+            Favorites()
+          ]),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              appState.addNumber();
+            },
+            tooltip: 'Save',
+            child: const Icon(Icons.save),
+          ),
         ),
       );
     });
@@ -342,6 +423,7 @@ class ProductCard extends StatelessWidget {
                   child: Text(
                     "${appState._items[index]["Brand"]} - ${appState._items[index]["Name"]}",
                     style: Theme.of(context).textTheme.titleMedium,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Padding(
@@ -626,7 +708,7 @@ class ProductDetail extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                     mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       for (final item in appState._items.where((element) =>
                           element["Category"] == selectedProduct["Category"] &&
@@ -686,3 +768,106 @@ class ProductDetail extends StatelessWidget {
 }
 
 // Id - Name - Description - Rating - Category - Brand - Model - Price - Stock - Weight - Dimension - Likes
+
+class ThemeViewer extends StatelessWidget {
+  const ThemeViewer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    var colorList = [
+      Theme.of(context).colorScheme.background,
+      Theme.of(context).colorScheme.onBackground,
+      Theme.of(context).colorScheme.error,
+      Theme.of(context).colorScheme.errorContainer,
+      Theme.of(context).colorScheme.onError,
+      Theme.of(context).colorScheme.onErrorContainer,
+      Theme.of(context).colorScheme.inversePrimary,
+      Theme.of(context).colorScheme.inverseSurface,
+      Theme.of(context).colorScheme.onInverseSurface,
+      Theme.of(context).colorScheme.outline,
+      Theme.of(context).colorScheme.outlineVariant,
+      Theme.of(context).colorScheme.primary,
+      Theme.of(context).colorScheme.primaryContainer,
+      Theme.of(context).colorScheme.onPrimary,
+      Theme.of(context).colorScheme.onPrimaryContainer,
+      Theme.of(context).colorScheme.scrim,
+      Theme.of(context).colorScheme.secondary,
+      Theme.of(context).colorScheme.secondaryContainer,
+      Theme.of(context).colorScheme.onSecondary,
+      Theme.of(context).colorScheme.onSecondaryContainer,
+      Theme.of(context).colorScheme.shadow,
+      Theme.of(context).colorScheme.surface,
+      Theme.of(context).colorScheme.surfaceTint,
+      Theme.of(context).colorScheme.surfaceVariant,
+      Theme.of(context).colorScheme.onSurface,
+      Theme.of(context).colorScheme.onSurfaceVariant,
+      Theme.of(context).colorScheme.tertiary,
+      Theme.of(context).colorScheme.tertiaryContainer,
+      Theme.of(context).colorScheme.onTertiary,
+      Theme.of(context).colorScheme.onTertiaryContainer,
+    ];
+
+    var fontSize = [
+      Theme.of(context).textTheme.bodyLarge,
+      Theme.of(context).textTheme.bodyMedium,
+      Theme.of(context).textTheme.bodySmall,
+      Theme.of(context).textTheme.headlineLarge,
+      Theme.of(context).textTheme.headlineMedium,
+      Theme.of(context).textTheme.headlineSmall,
+      Theme.of(context).textTheme.titleLarge,
+      Theme.of(context).textTheme.titleMedium,
+      Theme.of(context).textTheme.titleSmall,
+      Theme.of(context).textTheme.labelLarge,
+      Theme.of(context).textTheme.labelMedium,
+      Theme.of(context).textTheme.labelSmall,
+      Theme.of(context).textTheme.displayLarge,
+      Theme.of(context).textTheme.displayMedium,
+      Theme.of(context).textTheme.displaySmall,
+    ];
+    return Column(
+      children: [
+        SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (var item in colorList)
+                        Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.black),
+                              color: item,
+                            ),
+                            width: 128,
+                            height: 64,
+                            child: Text(
+                              item.toString(),
+                            )),
+                    ],
+                  ),
+                ),
+              ),
+              for (int i = 0; i < fontSize.length; i++)
+                i % 3 != 2
+                    ? Text(
+                        "Lorem Ipsum",
+                        style: fontSize[i],
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Text(
+                          "Lorem Ipsum",
+                          style: fontSize[i],
+                        ),
+                      ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
