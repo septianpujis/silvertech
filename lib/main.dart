@@ -33,6 +33,10 @@ class ColorConstant {
 
   static LinearGradient gradient = LinearGradient(
       colors: [ColorConstant.primary900, ColorConstant.primary600]);
+  static LinearGradient borderGradient = LinearGradient(
+      colors: [Color.fromRGBO(0, 142, 186, 1), Color.fromRGBO(0, 85, 132, 1)]);
+  static LinearGradient pressedButton = LinearGradient(
+      colors: [ColorConstant.primary900, ColorConstant.primary900]);
 }
 
 enum TypographyType {
@@ -168,41 +172,24 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    Widget page;
-    switch (selectedIndex) {
-      case 0:
-        page = ThemeViewer();
-        break;
-      case 1:
-        page = Favorites();
-        break;
-      case 2:
-        page = NumberControl();
-        break;
-      case 3:
-        page = Products();
-        break;
-      default:
-        throw UnimplementedError('404');
-    }
     return LayoutBuilder(builder: (context, constraints) {
       return DefaultTabController(
         length: 4,
         child: Scaffold(
           appBar: AppBar(
-            title: Text(page.toString(),
-                style: Theme.of(context).textTheme.titleLarge),
+            title:
+                Text("My app", style: Theme.of(context).textTheme.titleLarge),
             backgroundColor: ColorConstant.primary900,
             bottom: TabBar(tabs: [
-              Tab(icon: Icon(Icons.shopping_basket), text: "Product"),
               Tab(icon: Icon(Icons.color_lens), text: "Basic"),
+              Tab(icon: Icon(Icons.shopping_basket), text: "Product"),
               Tab(icon: Icon(Icons.numbers), text: "Number"),
               Tab(icon: Icon(Icons.favorite_border_outlined), text: "Num Fav"),
             ]),
           ),
           body: TabBarView(children: [
-            Products(),
             ThemeViewer(),
+            Products(),
             NumberControl(),
             Favorites()
           ]),
@@ -830,6 +817,20 @@ class ThemeViewer extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              TextButton(
+                onPressed: () {},
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("Button Label"),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: Icon(Icons.arrow_forward),
+                    )
+                  ],
+                ),
+              ),
+              OntegoButton(),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: SingleChildScrollView(
@@ -838,11 +839,12 @@ class ThemeViewer extends StatelessWidget {
                     children: [
                       for (var item in colorList)
                         Container(
+                            margin: EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.black),
                               color: item,
                             ),
-                            width: 128,
+                            width: 64,
                             height: 64,
                             child: Text(
                               item.toString(),
@@ -868,6 +870,104 @@ class ThemeViewer extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class OntegoButton extends StatefulWidget {
+  const OntegoButton({
+    super.key,
+  });
+
+  @override
+  State<OntegoButton> createState() => _OntegoButtonState();
+}
+
+class _OntegoButtonState extends State<OntegoButton> {
+  var currentState = "normal";
+  @override
+  Widget build(BuildContext context) {
+    Gradient getGradient(Set<MaterialState> states) {
+      const Set<MaterialState> hovered = <MaterialState>{
+        MaterialState.hovered,
+        MaterialState.focused,
+      };
+      const Set<MaterialState> pressed = <MaterialState>{
+        MaterialState.pressed,
+      };
+
+      if (states.any(hovered.contains)) {
+        return ColorConstant.gradient;
+      }
+
+      if (states.any(pressed.contains)) {
+        return ColorConstant.pressedButton;
+      }
+      return ColorConstant.borderGradient;
+    }
+
+    return SizedBox(
+      width: 208,
+      child: InkWell(
+        statesController: MaterialStatesController(),
+        onHover: (value) {
+          setState(() {
+            value ? currentState = "hover" : currentState = "normal";
+          });
+        },
+        onTap: () {
+          setState(() {
+            currentState = "pressed";
+          });
+        },
+        child: Material(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: currentState == "normal"
+                  ? ColorConstant.borderGradient
+                  : currentState == "pressed"
+                      ? ColorConstant.pressedButton
+                      : ColorConstant.gradient,
+            ),
+            padding: EdgeInsets.all(2),
+            child: Container(
+              decoration: BoxDecoration(
+                color: currentState == "normal"
+                    ? ColorConstant.neutral000
+                    : Color.fromRGBO(0, 0, 0, 0),
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 7,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Button $currentState",
+                    style: TextStyle(
+                      color: currentState == "normal"
+                          ? ColorConstant.primary500
+                          : ColorConstant.neutral000,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16),
+                    child: Icon(
+                      Icons.arrow_forward,
+                      color: currentState == "normal"
+                          ? ColorConstant.primary500
+                          : ColorConstant.neutral000,
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
