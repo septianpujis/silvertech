@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 
+import 'package:silver_tech/area.dart';
+import 'package:silver_tech/sdk.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -56,43 +59,6 @@ enum TypographyType {
   dashboardSubtitle,
   dashboardDate,
 }
-
-// class CustomTypography extends StatelessWidget {
-//   const CustomTypography({
-//     Key? key,
-//     required this.text,
-//     this.type,
-//     this.alignment,
-//     this.textColor,
-//     this.fontWeight = FontWeight.w400,
-//     this.fontSize = 16,
-//   }) : super(key: key);
-
-//   final String text;
-//   final TypographyType? type;
-//   final TextAlign? alignment;
-//   final Color? textColor;
-//   final FontWeight fontWeight;
-//   final double fontSize;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final double deviceWidth = MediaQuery.of(context).size.width;
-
-//     return Text(
-//       text,
-//       style: type == null
-//           ? TextStyle(
-//               color: textColor ?? Colors.black,
-//               fontWeight: fontWeight,
-//               fontSize: calcFontSize(fontSize, deviceWidth),
-//               overflow: TextOverflow.ellipsis,
-//             )
-//           : getStyleFromType(type, deviceWidth, textColor),
-//       textAlign: alignment ?? TextAlign.start,
-//     );
-//   }
-// }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -179,8 +145,9 @@ class _MyHomePageState extends State<MyHomePage> {
           appBar: AppBar(
             title:
                 Text("My app", style: Theme.of(context).textTheme.titleLarge),
-            backgroundColor: ColorConstant.primary900,
+            backgroundColor: ColorConstant.neutral150,
             bottom: TabBar(tabs: [
+              Tab(icon: Icon(Icons.color_lens), text: "SDK"),
               Tab(icon: Icon(Icons.color_lens), text: "Basic"),
               Tab(icon: Icon(Icons.shopping_basket), text: "Product"),
               Tab(icon: Icon(Icons.numbers), text: "Number"),
@@ -188,6 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ]),
           ),
           body: TabBarView(children: [
+            SDK(),
             ThemeViewer(),
             Products(),
             NumberControl(),
@@ -842,113 +810,129 @@ class _ThemeViewerState extends State<ThemeViewer>
       Theme.of(context).textTheme.displaySmall,
     ];
     return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextButton(
-            onPressed: () {},
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text("Button Label"),
-                Padding(
-                  padding: const EdgeInsets.only(left: 16),
-                  child: Icon(Icons.arrow_forward),
-                )
-              ],
-            ),
-          ),
-          OntegoButton(),
-          CheckboxListTile(
-            title: Text("Checkbox list tile"),
-            value: isBox,
-            tristate: true,
-            onChanged: (value) {
-              setState(() {
-                print(value);
-                isBox = value;
-              });
-            },
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Checkbox(
-                tristate: true,
-                activeColor: Colors.amber,
-                checkColor: Colors.brown,
-                value: isBox,
-                onChanged: (value) {
-                  setState(() {
-                    print(value);
-                    isBox = value;
-                  });
-                },
-              ),
-              Text("Label Ontego"),
-            ],
-          ),
-          Switch(
-            inactiveThumbColor: ColorConstant.neutral000,
-            inactiveTrackColor: ColorConstant.neutral500,
-            value: isSwitch,
-            onChanged: (value) {
-              setState(() {
-                isSwitch = value;
-              });
-            },
-          ),
-          SwitchListTile(
-            title: Text("Switch Label"),
-            value: isSwitch,
-            onChanged: (value) {
-              setState(() {
-                isSwitch = value;
-              });
-            },
-          ),
-          Container(
-            height: sizeAnimation.value,
-            width: sizeAnimation.value,
-            color: colorAnimation.value,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextButton(
+              onPressed: () {},
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  for (var item in colorList)
-                    Container(
-                        margin: EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black),
-                          color: item,
-                        ),
-                        width: 64,
-                        height: 64,
-                        child: Text(
-                          item.toString(),
-                        )),
+                  Text("Button Label"),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16),
+                    child: Icon(Icons.arrow_forward),
+                  )
                 ],
               ),
             ),
-          ),
-          for (int i = 0; i < fontSize.length; i++)
-            i % 3 != 2
-                ? Text(
-                    "Lorem Ipsum",
-                    style: fontSize[i],
-                  )
-                : Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Text(
+            OntegoButton(),
+            CheckboxListTile(
+              title: Text("Checkbox list tile"),
+              value: isBox,
+              tristate: true,
+              onChanged: (value) {
+                setState(() {
+                  print(value);
+                  isBox = value;
+                });
+              },
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Checkbox(
+                  tristate: true,
+                  activeColor: Colors.amber,
+                  checkColor: Colors.brown,
+                  value: isBox,
+                  onChanged: (value) {
+                    setState(() {
+                      print(value);
+                      isBox = value;
+                    });
+                  },
+                ),
+                Text("Label Ontego"),
+              ],
+            ),
+            Switch(
+              inactiveThumbColor: ColorConstant.neutral000,
+              inactiveTrackColor: ColorConstant.neutral500,
+              value: isSwitch,
+              onChanged: (value) {
+                setState(() {
+                  isSwitch = value;
+                });
+              },
+            ),
+            Separator(),
+            SwitchListTile(
+              title: Text("Switch Label"),
+              value: isSwitch,
+              onChanged: (value) {
+                setState(() {
+                  isSwitch = value;
+                });
+              },
+            ),
+            Container(
+              height: sizeAnimation.value,
+              width: sizeAnimation.value,
+              color: colorAnimation.value,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (var item in colorList)
+                      Container(
+                          margin: EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black),
+                            color: item,
+                          ),
+                          width: 64,
+                          height: 64,
+                          child: Text(
+                            item.toString(),
+                          )),
+                  ],
+                ),
+              ),
+            ),
+            for (int i = 0; i < fontSize.length; i++)
+              i % 3 != 2
+                  ? Text(
                       "Lorem Ipsum",
                       style: fontSize[i],
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Text(
+                        "Lorem Ipsum",
+                        style: fontSize[i],
+                      ),
                     ),
-                  ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class Separator extends StatelessWidget {
+  const Separator({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Divider(
+      thickness: 1,
+      color: ColorConstant.neutral200,
     );
   }
 }
