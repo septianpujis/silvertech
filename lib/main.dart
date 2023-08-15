@@ -756,8 +756,38 @@ class ProductDetail extends StatelessWidget {
 
 // Id - Name - Description - Rating - Category - Brand - Model - Price - Stock - Weight - Dimension - Likes
 
-class ThemeViewer extends StatelessWidget {
+class ThemeViewer extends StatefulWidget {
   const ThemeViewer({super.key});
+
+  @override
+  State<ThemeViewer> createState() => _ThemeViewerState();
+}
+
+class _ThemeViewerState extends State<ThemeViewer>
+    with SingleTickerProviderStateMixin {
+  bool? isBox = false;
+  bool isSwitch = false;
+
+  late AnimationController controller;
+  late Animation colorAnimation;
+  late Animation sizeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    controller =
+        AnimationController(vsync: this, duration: Duration(seconds: 2));
+    colorAnimation =
+        ColorTween(begin: Colors.blue, end: Colors.yellow).animate(controller);
+    sizeAnimation = Tween<double>(begin: 100.0, end: 200.0).animate(controller);
+    // Rebuilding the screen when animation goes ahead
+    controller.addListener(() {
+      setState(() {});
+    });
+
+    // Repeat the animation after finish
+    controller.repeat();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -811,65 +841,114 @@ class ThemeViewer extends StatelessWidget {
       Theme.of(context).textTheme.displayMedium,
       Theme.of(context).textTheme.displaySmall,
     ];
-    return Column(
-      children: [
-        SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextButton(
+            onPressed: () {},
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("Button Label"),
+                Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Icon(Icons.arrow_forward),
+                )
+              ],
+            ),
+          ),
+          OntegoButton(),
+          CheckboxListTile(
+            title: Text("Checkbox list tile"),
+            value: isBox,
+            tristate: true,
+            onChanged: (value) {
+              setState(() {
+                print(value);
+                isBox = value;
+              });
+            },
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              TextButton(
-                onPressed: () {},
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text("Button Label"),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16),
-                      child: Icon(Icons.arrow_forward),
-                    )
-                  ],
-                ),
+              Checkbox(
+                tristate: true,
+                activeColor: Colors.amber,
+                checkColor: Colors.brown,
+                value: isBox,
+                onChanged: (value) {
+                  setState(() {
+                    print(value);
+                    isBox = value;
+                  });
+                },
               ),
-              OntegoButton(),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      for (var item in colorList)
-                        Container(
-                            margin: EdgeInsets.symmetric(horizontal: 16),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.black),
-                              color: item,
-                            ),
-                            width: 64,
-                            height: 64,
-                            child: Text(
-                              item.toString(),
-                            )),
-                    ],
-                  ),
-                ),
-              ),
-              for (int i = 0; i < fontSize.length; i++)
-                i % 3 != 2
-                    ? Text(
-                        "Lorem Ipsum",
-                        style: fontSize[i],
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: Text(
-                          "Lorem Ipsum",
-                          style: fontSize[i],
-                        ),
-                      ),
+              Text("Label Ontego"),
             ],
           ),
-        ),
-      ],
+          Switch(
+            inactiveThumbColor: ColorConstant.neutral000,
+            inactiveTrackColor: ColorConstant.neutral500,
+            value: isSwitch,
+            onChanged: (value) {
+              setState(() {
+                isSwitch = value;
+              });
+            },
+          ),
+          SwitchListTile(
+            title: Text("Switch Label"),
+            value: isSwitch,
+            onChanged: (value) {
+              setState(() {
+                isSwitch = value;
+              });
+            },
+          ),
+          Container(
+            height: sizeAnimation.value,
+            width: sizeAnimation.value,
+            color: colorAnimation.value,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (var item in colorList)
+                    Container(
+                        margin: EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black),
+                          color: item,
+                        ),
+                        width: 64,
+                        height: 64,
+                        child: Text(
+                          item.toString(),
+                        )),
+                ],
+              ),
+            ),
+          ),
+          for (int i = 0; i < fontSize.length; i++)
+            i % 3 != 2
+                ? Text(
+                    "Lorem Ipsum",
+                    style: fontSize[i],
+                  )
+                : Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      "Lorem Ipsum",
+                      style: fontSize[i],
+                    ),
+                  ),
+        ],
+      ),
     );
   }
 }
@@ -883,7 +962,8 @@ class OntegoButton extends StatefulWidget {
   State<OntegoButton> createState() => _OntegoButtonState();
 }
 
-class _OntegoButtonState extends State<OntegoButton> {
+class _OntegoButtonState extends State<OntegoButton>
+    with SingleTickerProviderStateMixin {
   var currentState = "normal";
   @override
   Widget build(BuildContext context) {
